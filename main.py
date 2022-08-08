@@ -1,6 +1,7 @@
 import sys
 import os
 from PyQt6.QtCore import Qt
+from queue import Queue
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -34,8 +35,9 @@ class MainWindow(QMainWindow, designed.Ui_MainWindow):
         self.left_arrow = QIcon('left_arrow.png')
         self.right_arrow = QIcon('right_arrow.png')
 
-        # the history of user, updated if
+        # the history of user
         self.history = [os.getcwd()]
+        self.cur_index = 0
 
         # search setup
         self.SearchLine.setText(os.getcwd())
@@ -48,23 +50,44 @@ class MainWindow(QMainWindow, designed.Ui_MainWindow):
         # setup previous and next folder
         self.PreviousFolder.setIcon(self.left_arrow)
         self.NextFolder.setIcon(self.right_arrow)
-        # self.PreviousFolder.released().connect
-        # self.NextFolder.released().connect
+        self.PreviousFolder.released.connect(self.previous_folder)
+        self.NextFolder.released.connect(self.next_folder)
 
         self.draw_scrollbar()
 
-    # def next_folder(self):
-    #     if
+    def previous_folder(self):
+        if self.cur_index > 0:
+            self.cur_index -= 1
+            path = self.history[self.cur_index]
+            print(f'previous = {self.cur_index}')
+            self.SearchLine.setText(path)
+            os.chdir(path)
 
+            self.draw_scrollbar()
+
+    def next_folder(self):
+        if self.cur_index < len(self.history) - 1:
+            self.cur_index += 1
+            path = self.history[self.cur_index]
+            print(f'next = {self.cur_index}')
+
+            self.SearchLine.setText(path)
+            os.chdir(path)
+
+            self.draw_scrollbar()
 
     def change_directory(self, dir):
         try:
             new_path = os.getcwd() + os.sep + dir
             os.chdir(new_path)
 
-            self.history.append(new_path)
             self.text = os.getcwd()
             self.SearchLine.setText(new_path)
+
+            self.history = self.history[:self.cur_index + 1]
+            self.history.append(new_path)
+            self.cur_index = len(self.history) - 1
+            print(self.history, self.cur_index)
 
             self.draw_scrollbar()
         except:
@@ -76,6 +99,10 @@ class MainWindow(QMainWindow, designed.Ui_MainWindow):
     def return_pressed(self):
         try:
             os.chdir(self.text)
+
+            self.history.append(self.text)
+            self.cur_index = len(self.history) - 1
+
             self.draw_scrollbar()
         except:
             pass
