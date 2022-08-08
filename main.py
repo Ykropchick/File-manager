@@ -120,7 +120,7 @@ class MainWindow(QMainWindow, designed.Ui_MainWindow):
             # the icon of folder and file that clickable
             button = QToolButton()
 
-            if '.' in i:
+            if os.path.isfile(i):
                 button.setIcon(self.file_icon)
             else:
                 button.setIcon(self.folder_icon)
